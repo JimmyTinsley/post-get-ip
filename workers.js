@@ -1,4 +1,4 @@
-LIST_PASSWD = "deafult_password"
+LIST_PASSWD = "default_password"
 
 addEventListener("fetch", event => {  
     event.respondWith(handleRequest(event.request))
