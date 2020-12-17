@@ -1,22 +1,35 @@
+LIST_PASSWD = "deafult_password"
+
 addEventListener("fetch", event => {  
     event.respondWith(handleRequest(event.request))
 })
 
-
 async function handleRequest(request) {  
-    if (request.method === "GET") {
-        const value = await BUCKET.get("ip")  
-        if (value === null) {    
-            return new Response("Value not found", {status: 404})  
+    url = new URL(request.url)
+    
+    if (url.pathname === "/set") {
+        for(var key of url.searchParams.keys()) {
+            await BUCKET.put(key, url.searchParams.get(key))
         }
+        return new Response("ok")
+    }
+
+    if (url.pathname === "/get") {
+        key = url.searchParams.get("key")
+        const value = await BUCKET.get(key)
         return new Response(value)
     }
-    if (request.method === "POST") {
-        const ip = request.headers.get("cf-connecting-ip") 
-        await BUCKET.put("ip", ip)
-        return new Response("ok",{status: 200})
-    } 
-    else {
-        return new Response("Method Not Allowed",{status: 405})
+
+    if (url.pathname === "/list") {
+        const value = await BUCKET.list()
+        passwd = url.searchParams.get("passwd")
+        if (passwd !== LIST_PASSWD) {
+            return new Response("Password not correct", {status: 400})
+        }
+        let key_list = []
+        for(var key of value.keys) {
+            key_list.push(key.name)
+        }
+        return new Response(key_list.join("\r\n"))
     }
 }
